@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フォーム作成くん | AI自動フォーム＆画像生成</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for code blocks */
+        pre::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+        .loader {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center w-10 h-10 shadow-md">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">フォーム作成くん</span>
+                </div>
+                <div class="text-sm text-slate-500 hidden sm:block">
+                    AI x Google Forms Automation
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Input Form -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-blue-500"></i>
+                        作成要件を入力
+                    </h2>
+                    
+                    <form id="generateForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">フォームのタイトル <span class="text-red-500">*</span></label>
+                            <input type="text" id="formTitleInput" required placeholder="例: 2026年 新製品発表会 参加申込" class="w-full rounded-lg border-slate-300 border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">フォームの目的 <span class="text-red-500">*</span></label>
+                            <select id="formPurpose" required class="w-full rounded-lg border-slate-300 border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="イベント参加申込">イベント参加申込</option>
+                                <option value="顧客満足度アンケート">顧客満足度アンケート</option>
+                                <option value="社内業務改善アンケート">社内業務改善アンケート</option>
+                                <option value="初回問い合わせ・ヒアリング">初回問い合わせ・ヒアリング</option>
+                                <option value="自社アプリの利用フィードバック">自社アプリの利用フィードバック</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">聞きたい質問・項目 <span class="text-red-500">*</span></label>
+                            <textarea id="additionalDetails" required rows="4" placeholder="例: 氏名、メールアドレス、参加希望日（10日か11日）、懇親会への参加有無、アレルギー等について聞きたい。" class="w-full rounded-lg border-slate-300 border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">ヘッダー画像のテイスト</label>
+                            <select id="designTone" class="w-full rounded-lg border-slate-300 border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="プロフェッショナルで信頼感がある">プロフェッショナル・信頼感</option>
+                                <option value="明るくポップで親しみやすい">明るくポップ・親しみやすい</option>
+                                <option value="ミニマルでスタイリッシュ">ミニマル・スタイリッシュ</option>
+                                <option value="温かみがありナチュラル">温かみ・ナチュラル</option>
+                                <option value="未来的でテクノロジー感がある">未来的・テクノロジー</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-sparkles"></i>
+                            プレビューとソースを生成
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800">
+                    <h4 class="font-bold mb-1 flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> このアプリの仕組み</h4>
+                    <p class="mb-2">入力内容からAIが「プレビュー」と、フォームを自動作成する「ソースコード(GAS)」を作成します。</p>
+                    <p>ソースコードを実行すると、Googleフォーム本体と同時に<strong>公開用URL・短縮URL</strong>が発行されます。</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 flex flex-col h-full">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col overflow-hidden relative">
+                    
+                    <!-- Loading Overlay -->
+                    <div id="loadingOverlay" class="absolute inset-0 bg-white/90 z-20 hidden flex-col items-center justify-center backdrop-blur-sm">
+                        <div class="loader mb-4"></div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2" id="loadingTitle">AIが考え中...</h3>
+                        <p class="text-slate-500 text-sm animate-pulse" id="loadingDesc">設問構造を設計し、スクリプトを生成しています</p>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex border-b border-slate-200 px-2 pt-2 bg-slate-50">
+                        <button onclick="switchTab('preview')" id="tab-preview" class="tab-active px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            <i class="fa-regular fa-eye mr-1"></i> プレビュー・画像
+                        </button>
+                        <button onclick="switchTab('code')" id="tab-code" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            <i class="fa-solid fa-code mr-1"></i> GASコード
+                        </button>
+                        <button onclick="switchTab('guide')" id="tab-guide" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            <i class="fa-solid fa-book mr-1"></i> 使い方
+                        </button>
+                    </div>
+
+                    <div class="flex-grow overflow-y-auto bg-slate-100 p-4 sm:p-8 relative">
+                        
+                        <!-- Initial Empty State -->
+                        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-regular fa-file-lines text-6xl mb-4 text-slate-300"></i>
+                            <p class="text-lg">左のフォームから要件を入力して生成を開始してください</p>
+                        </div>
+
+                        <!-- Preview Content -->
+                        <div id="previewContent" class="hidden max-w-2xl mx-auto">
+                            <!-- Image Header -->
+                            <div class="bg-white rounded-t-xl overflow-hidden shadow-sm border border-slate-200 border-b-0 relative group">
+                                <div id="imagePlaceholder" class="w-full h-48 bg-slate-200 animate-pulse flex items-center justify-center">
+                                    <span class="text-slate-400"><i class="fa-regular fa-image mr-2"></i>画像生成中...</span>
+                                </div>
+                                <img id="generatedImage" src="" alt="Generated Header" class="w-full h-48 object-cover hidden">
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hidden" id="imageOverlay">
+                                    <a id="downloadImageBtn" href="#" download="form_header.png" class="bg-white text-slate-800 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 shadow-lg">
+                                        <i class="fa-solid fa-download mr-1"></i> 画像をダウンロード
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- Form Body (Mockup) -->
+                            <div class="bg-white p-8 rounded-b-xl shadow-sm border border-slate-200 border-t-8 border-t-blue-500">
+                                <h1 id="previewTitle" class="text-3xl font-normal mb-2 text-slate-800">フォームタイトル</h1>
+                                <p id="previewDesc" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap">フォームの説明文がここに入ります。</p>
+                                <div class="h-px w-full bg-slate-200 mb-6"></div>
+                                <div id="previewQuestions" class="space-y-6">
+                                    <!-- Questions will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="codeContent" class="hidden h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-700">Google Apps Script コード</h3>
+                                <button onclick="copyCode()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm transition-colors flex items-center gap-2">
+                                    <i class="fa-regular fa-copy"></i> コードをコピー
+                                </button>
+                            </div>
+                            <div class="flex-grow relative rounded-xl overflow-hidden bg-[#1e293b] shadow-inner border border-slate-700">
+                                <pre><code id="gasCodeDisplay" class="language-javascript text-sm text-blue-300 p-6 block h-full overflow-y-auto font-mono leading-relaxed">
+/* ここに生成されたGASコードが表示されます */
+                                </code></pre>
+                            </div>
+                        </div>
+
+                        <div id="guideContent" class="hidden">
+                            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
+                                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-signs-post text-blue-500"></i>フォームとURLの作成手順</h2>
+                                
+                                <div class="space-y-8 text-slate-700">
+                                    <div class="flex gap-4">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">1</div>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">GASを開く</h3>
+                                            <p class="text-sm leading-relaxed mb-2">Googleドライブを開き、左上の「新規」 > 「その他」 > 「Google Apps Script」をクリックして新しいプロジェクトを作成します。</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex gap-4">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">2</div>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">ソースコードを貼り付ける</h3>
+                                            <p class="text-sm leading-relaxed mb-2">「GASコード」タブからコピーしたコードを、エディタに元々ある文字を全て消してから貼り付けます。</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-4">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">3</div>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">実行してURLを取得する！</h3>
+                                            <p class="text-sm leading-relaxed mb-2">上部の「実行」ボタン（▶️）をクリックします。（※初回のみ権限の承認が必要です）</p>
+                                            <p class="text-sm leading-relaxed bg-blue-50 p-3 rounded mt-2 border border-blue-100">
+                                                <i class="fa-solid fa-lightbulb text-blue-500 mr-1"></i> <strong>ここがポイント！</strong><br>
+                                                実行が完了すると、画面下部の「実行ログ」に<strong>フォームの公開用URLと短縮URLが表示されます。</strong> これをコピーしてすぐにお客様に共有できます。
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-4">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">4</div>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">画像の設定（オプション）</h3>
+                                            <p class="text-sm leading-relaxed mb-2">Googleドライブに作成されたフォームのファイルを開き、プレビュー画面でダウンロードした「ヘッダー画像」をテーマ設定からアップロードすれば完璧です。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // API Configuration (API Key is left empty for Canvas runtime injection)
+        const apiKey = ""; 
+        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+
+        // UI Elements
+        const form = document.getElementById('generateForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const emptyState = document.getElementById('emptyState');
+        const previewContent = document.getElementById('previewContent');
+        const codeContent = document.getElementById('codeContent');
+        const guideContent = document.getElementById('guideContent');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingDesc = document.getElementById('loadingDesc');
+
+        let generatedGasCode = "";
+
+        function switchTab(tabId) {
+            // Reset tabs
+            ['preview', 'code', 'guide'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.remove('tab-active');
+                document.getElementById(`tab-${id}`).classList.add('text-slate-600');
+                if(document.getElementById(`${id}Content`)) {
+                    document.getElementById(`${id}Content`).classList.add('hidden');
+                }
+            });
+            emptyState.classList.add('hidden');
+
+            // Set active tab
+            document.getElementById(`tab-${tabId}`).classList.add('tab-active');
+            document.getElementById(`tab-${tabId}`).classList.remove('text-slate-600');
+            
+            if(generatedGasCode !== "" || tabId === 'guide') {
+                document.getElementById(`${tabId}Content`).classList.remove('hidden');
+            } else {
+                 emptyState.classList.remove('hidden');
+            }
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(generatedGasCode).then(() => {
+                const btn = document.querySelector('button[onclick="copyCode()"]');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> コピーしました！';
+                btn.classList.replace('bg-slate-800', 'bg-green-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.replace('bg-green-600', 'bg-slate-800');
+                }, 2000);
+            });
+        }
+
+        // Delay function for exponential backoff
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        // API Request with retry logic
+        async function fetchWithRetry(url, options, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        if (response.status === 429) {
+                            await delay(Math.pow(2, i) * 1000); // Exponential backoff: 1s, 2s, 4s
+                            continue;
+                        }
+                        throw new Error(`API Error ${response.status}: ${JSON.stringify(errorData)}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await delay(Math.pow(2, i) * 1000);
+                }
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const title = document.getElementById('formTitleInput').value;
+            const purpose = document.getElementById('formPurpose').value;
+            const tone = document.getElementById('designTone').value;
+            const details = document.getElementById('additionalDetails').value;
+
+            // Show loading
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('flex');
+            loadingTitle.innerText = "構成を設計中...";
+            loadingDesc.innerText = "Gemini AIが最適な質問項目とプログラムを生成しています";
+
+            try {
+                // 1. Fetch Form Structure and GAS Code from Gemini Text
+                const textResult = await generateFormStructure(title, purpose, tone, details);
+                
+                // Update UI with Form Data
+                renderPreview(textResult);
+                
+                // Update Code Tab
+                generatedGasCode = textResult.gasCode;
+                document.getElementById('gasCodeDisplay').textContent = generatedGasCode;
+                
+                // Switch to preview tab
+                switchTab('preview');
+
+                // 2. Fetch Image from Imagen using the generated prompt
+                loadingTitle.innerText = "画像を生成中...";
+                loadingDesc.innerText = "Imagen AIがヘッダー用のアートワークを描画しています";
+                
+                await generateHeaderImage(textResult.imagePrompt);
+
+            } catch (error) {
+                console.error("Generation failed:", error);
+                alert("生成中にエラーが発生しました。時間をおいて再度お試しください。");
+            } finally {
+                loadingOverlay.classList.add('hidden');
+                loadingOverlay.classList.remove('flex');
+            }
+        async function generateFormStructure(title, purpose, tone, details) {
+            const systemPrompt = `あなたは優秀なUI/UXデザイナー兼Google Apps Scriptのエンジニアです。
+ユーザーの要件に基づいて、回答率が高まる論理的で分かりやすいGoogleフォームの構成を考え、それを自動生成するための完全なGASコードを作成してください。
+また、フォームのヘッダーに配置する魅力的な画像（アスペクト比16:9）を生成するための、AI画像生成用の英語プロンプトも作成してください。
+
+【出力要件】
+1. JSONスキーマに厳密に従って出力すること。
+2. GASコードは \`FormApp.create()\` を使用して新規フォームを作成し、タイトル、説明文、各質問を追加する完全で実行可能なコードにすること。
+3. ★重要: GASコードの最後で、作成したフォームの「公開用URL(publishedUrl)」を取得し、UrlFetchAppを用いてTinyURL API（'https://tinyurl.com/api-create.php?url=' + 公開用URL）を叩いて「短縮URL」も生成してください。
+4. ★重要: 取得した「編集用URL」「公開用URL」「短縮URL」を、Logger.log() を使って実行ログに分かりやすく出力するコードを含めてください。
+5. 質問タイプ(questionType)は以下から選ぶこと: "TEXT" (記述式), "PARAGRAPH" (段落), "MULTIPLE_CHOICE" (ラジオボタン), "CHECKBOX" (チェックボックス), "LIST" (プルダウン)
+6. imagePromptは、指定されたデザイントーンに合わせた、高品質でテキストや文字を含まない抽象的・または風景的な画像プロンプト（英語）にすること。`;
+
+            const userPrompt = `
+以下の要件でフォームを作成してください。
+- フォームタイトル: ${title}
+- 目的: ${purpose}
+- デザイントーン: ${tone}
+- 質問したい内容・詳細: ${details}
+`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "formTitle": { type: "STRING" },
+                            "formDescription": { type: "STRING" },
+                            "questions": {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "questionType": { type: "STRING" },
+                                        "questionTitle": { type: "STRING" },
+                                        "options": { type: "ARRAY", items: { type: "STRING" } },
+                                        "isRequired": { type: "BOOLEAN" }
+                                    }
+                                }
+                            },
+                            "gasCode": { type: "STRING" },
+                            "imagePrompt": { type: "STRING" }
+                        },
+                        required: ["formTitle", "formDescription", "questions", "gasCode", "imagePrompt"]
+                    }
+                }
+            };
+
+            const result = await fetchWithRetry(GEMINI_TEXT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                return JSON.parse(result.candidates[0].content.parts[0].text);
+            } else {
+                throw new Error("Invalid response from text model");
+            }
+        }
+
+        async function generateHeaderImage(prompt) {
+            // Enhance prompt for better header image results
+            const enhancedPrompt = `${prompt}, aspect ratio 16:9, wide panoramic banner style, no text, no words, clean aesthetic, high quality, digital art`;
+            
+            const payload = { 
+                instances: { prompt: enhancedPrompt }, 
+                parameters: { sampleCount: 1, aspectRatio: "16:9" } 
+            };
+
+            try {
+                const result = await fetchWithRetry(IMAGEN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    
+                    document.getElementById('imagePlaceholder').classList.add('hidden');
+                    const imgEl = document.getElementById('generatedImage');
+                    imgEl.src = imageUrl;
+                    imgEl.classList.remove('hidden');
+                    
+                    const overlay = document.getElementById('imageOverlay');
+                    overlay.classList.remove('hidden');
+                    document.getElementById('downloadImageBtn').href = imageUrl;
+                }
+            } catch (error) {
+                console.error("Image generation failed:", error);
+                document.getElementById('imagePlaceholder').innerHTML = '<span class="text-red-400"><i class="fa-solid fa-triangle-exclamation mr-2"></i>画像生成に失敗しました</span>';
+                document.getElementById('imagePlaceholder').classList.remove('animate-pulse');
+            }
+        }
+
+        function renderPreview(data) {
+            document.getElementById('previewTitle').textContent = data.formTitle;
+            document.getElementById('previewDesc').textContent = data.formDescription;
+            
+            const questionsContainer = document.getElementById('previewQuestions');
+            questionsContainer.innerHTML = ''; // Clear previous
+
+            data.questions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "bg-slate-50 p-6 rounded-lg border border-slate-200";
+                
+                const titleHtml = `<h3 class="font-medium text-slate-800 mb-4 text-lg">
+                    ${index + 1}. ${q.questionTitle} 
+                    ${q.isRequired ? '<span class="text-red-500 text-sm ml-1">*必須</span>' : ''}
+                </h3>`;
+                
+                let inputHtml = '';
+                
+                switch(q.questionType) {
+                    case 'TEXT':
+                        inputHtml = `<input type="text" disabled placeholder="記述式テキスト" class="w-1/2 border-b-2 border-slate-300 bg-transparent outline-none py-1 text-slate-500 cursor-not-allowed">`;
+                        break;
+                    case 'PARAGRAPH':
+                        inputHtml = `<textarea disabled placeholder="長文回答テキスト" rows="2" class="w-full border-b-2 border-slate-300 bg-transparent outline-none py-1 text-slate-500 cursor-not-allowed resize-none"></textarea>`;
+                        break;
+                    case 'MULTIPLE_CHOICE':
+                    case 'CHECKBOX':
+                        const type = q.questionType === 'MULTIPLE_CHOICE' ? 'radio' : 'checkbox';
+                        const icon = q.questionType === 'MULTIPLE_CHOICE' ? 'fa-circle' : 'fa-square';
+                        if (q.options && q.options.length > 0) {
+                            inputHtml = `<div class="space-y-3">` + 
+                                q.options.map(opt => `
+                                    <div class="flex items-center gap-3 text-slate-600">
+                                        <i class="fa-regular ${icon} text-slate-300 text-lg"></i>
+                                        <span>${opt}</span>
+                                    </div>
+                                `).join('') + `</div>`;
+                        }
+                        break;
+                    case 'LIST':
+                        inputHtml = `<div class="w-1/2 border border-slate-300 bg-white rounded p-2 text-slate-500 flex justify-between items-center cursor-not-allowed">
+                            <span>選択してください</span>
+                            <i class="fa-solid fa-chevron-down text-sm"></i>
+                        </div>`;
+                        break;
+                    default:
+                        inputHtml = `<div class="text-slate-400 italic">入力ウィジェット</div>`;
+                }
+
+                qDiv.innerHTML = titleHtml + inputHtml;
+                questionsContainer.appendChild(qDiv);
+            });
+
+            // Reset image state for new generations
+            document.getElementById('imagePlaceholder').classList.remove('hidden');
+            document.getElementById('imagePlaceholder').innerHTML = '<span class="text-slate-400"><i class="fa-regular fa-image mr-2"></i>画像生成中...</span>';
+            document.getElementById('imagePlaceholder').classList.add('animate-pulse');
+            document.getElementById('generatedImage').classList.add('hidden');
+            document.getElementById('imageOverlay').classList.add('hidden');
+        }
+
+        // Initialize state
+        switchTab('preview');
+        emptyState.classList.remove('hidden');
+    </script>
+</body>
+</html>
