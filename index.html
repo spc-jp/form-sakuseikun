@@ -250,7 +250,7 @@
     <script>
         // API Configuration (API Key is left empty for Canvas runtime injection)
         const apiKey = ""; 
-        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
 
         // UI Elements
@@ -366,6 +366,8 @@
                 loadingOverlay.classList.add('hidden');
                 loadingOverlay.classList.remove('flex');
             }
+        }); // <- FIX: Added missing closing bracket for the event listener
+
         async function generateFormStructure(title, purpose, tone, details) {
             const systemPrompt = `あなたは優秀なUI/UXデザイナー兼Google Apps Scriptのエンジニアです。
 ユーザーの要件に基づいて、回答率が高まる論理的で分かりやすいGoogleフォームの構成を考え、それを自動生成するための完全なGASコードを作成してください。
