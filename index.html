@@ -249,10 +249,13 @@
     </main>
 
     <script>
-        // API Configuration (API Key is left empty for Canvas runtime injection)
-        const apiKey = ""; 
-        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+        // ==========================================
+        // API Configuration (Cloudflare Workers経由)
+        // ==========================================
+        const WORKER_BASE_URL = "https://form-sakuseikun.yymmatsu.workers.dev"; 
+        
+        const GEMINI_TEXT_URL = `${WORKER_BASE_URL}/api/generate-text`;
+        const IMAGEN_URL = `${WORKER_BASE_URL}/api/generate-image`;
 
         // UI Elements
         const form = document.getElementById('generateForm');
@@ -367,7 +370,7 @@
                 loadingOverlay.classList.add('hidden');
                 loadingOverlay.classList.remove('flex');
             }
-        }); // <- FIX: Added missing closing bracket for the event listener
+        });
 
         async function generateFormStructure(title, purpose, tone, details) {
             const systemPrompt = `あなたは優秀なUI/UXデザイナー兼Google Apps Scriptのエンジニアです。
@@ -434,7 +437,6 @@
         }
 
         async function generateHeaderImage(prompt) {
-            // Enhance prompt for better header image results
             const enhancedPrompt = `${prompt}, aspect ratio 16:9, wide panoramic banner style, no text, no words, clean aesthetic, high quality, digital art`;
             
             const payload = { 
